@@ -4,43 +4,25 @@ import java.util.LinkedList;
 public class Queue {
 
     private final int maxSize;
-    public int waitingThreads;
-    public LinkedList <URLDepthPair> in_process;
     private LinkedList<URLDepthPair> pairs;
     private LinkedList<URLDepthPair> checked;
 
-
-    public Queue(int maxSize) {
+    public  Queue(int maxSize) {
         this.maxSize = maxSize;
         this.pairs = new LinkedList<>();
         this.checked = new LinkedList<>();
-        this.in_process = new LinkedList<>();
-        this.waitingThreads=0;
     }
 
     public synchronized void Add(URLDepthPair obj) {
-        if (obj.GetDepth() < maxSize && !checked.contains(obj.GetURL())) {
+        if (pairs.size() < maxSize)
+        {
             pairs.addLast(obj);
-            checked.add(obj);
-            if (waitingThreads > 0) waitingThreads--;
-            this.notify();
         }
     }
 
     public synchronized URLDepthPair Get() {
-        if (pairs.size() == 0) {
-            waitingThreads++;
-            try {
-                this.wait();
-            }
-            catch (InterruptedException e) {
-                //System.err.println("MalformedURLException: " + e.getMessage());
-                return null;
-            }
-        }
-        URLDepthPair myDepthPair = pairs.removeFirst();
-        in_process.add(myDepthPair);
-        return myDepthPair;
+        if (pairs.size() > 0) return pairs.removeFirst(); // получаем объект из начала списка
+        else return null;
     }
 
     public synchronized boolean IsEmpty() {
@@ -54,8 +36,8 @@ public class Queue {
     public synchronized LinkedList<URLDepthPair> GetChecked() {
         return this.checked;//получаем весь лист проверенных ссылок
     }
-    public synchronized int getWaitThreads() {
-        return waitingThreads;
+    public synchronized LinkedList<URLDepthPair> GetPairs() {
+        return this.pairs;//получаем весь лист проверенных ссылок
     }
 
 }
