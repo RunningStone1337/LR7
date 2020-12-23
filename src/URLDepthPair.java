@@ -1,6 +1,9 @@
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 
 public class URLDepthPair {
+
     private String URL;
     private int depth;
 
@@ -14,12 +17,11 @@ public class URLDepthPair {
         return "Link - " + URL + " on depth " + depth;
     }
 
-    public String GetURL() {
+    public synchronized String GetURL() {
         return URL;
     }
 
-    public int GetDepth() {
+    public synchronized int GetDepth() {
         return depth;
     }
-
 }
