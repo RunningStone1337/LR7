@@ -7,18 +7,15 @@ import java.net.*;
 public class Crawler {
 
         public static final String HTTP_0 = "a href=\"http://";
-        //public static final String HTTP_1 = "href=\"http://";
         public static final String HTTPS_0 = "a href=\"https://";
-        //public static final String HTTPS_1 = "href=\"https://";
         public static final String PREF_0 = "a href=";
-        //public static final String PREF_1 = "href=";
-        public static final Queue queue = new Queue(100);
+        public static Queue queue;
         public static  int depth;
         public static  int streamsMax;
         public static  int streamsNow=0;
         public static Object obj = new Object();
-        public static void main(String[] args) throws IOException
-        {
+
+        public static void main(String[] args) throws IOException, InterruptedException {
             Scanner in = new Scanner(System.in);
             System.out.print("Enter link: ");
             String URL = in.nextLine();
@@ -27,41 +24,34 @@ public class Crawler {
             System.out.print("Enter num of streams: ");
             streamsMax = in.nextInt();
             in.close();
+            queue = new Queue(depth);
             queue.Add(new URLDepthPair(URL, 0));
             while (!queue.IsEmpty() || streamsNow != 0) {
-                try {
                     synchronized (obj) {
                         while (streamsNow >= streamsMax) {
                             obj.wait(1000);
                         }
                         if (!queue.IsEmpty()) {//лист непроверенных url не пуст -> начинаем новый поток
-                            startThread(queue.Get());
+                            StartThread(queue.Get());
                         } else obj.wait(1000);//иначе спим
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
-            //FindLinks(queue.Get());
+            }
         }
 
-    public static void startThread (URLDepthPair pair){
+    public static void StartThread (URLDepthPair pair){
         streamsNow++;
-        //queue.AddChecked(pair);
         new Thread(new CrawlerTask(pair), "thread №" + streamsNow).start();
     }
-
-        public static void PrintResults() {
+    public static void PrintResults()
+    {
             for (URLDepthPair checked : queue.GetChecked())
             {
                 System.out.println(checked.toString());
             }
-        }
+    }
 
-        public static void FindLinks(URLDepthPair pair) throws IOException {
+    public static void FindLinks(URLDepthPair pair) throws IOException {
             try {
-                //while (!queue.IsEmpty()) {
-                    //URLDepthPair temp = queue.Get();//получаем текущую ссылку в очереди обработки
                     URLConnection socket = new URL(pair.GetURL()).openConnection();//открываем новое соединение по полученной ссылке
                     socket.setConnectTimeout(7000);//и определяем время принудительного прерывания
                     InputStream stream = socket.getInputStream();//получаем поток ввода
@@ -95,11 +85,10 @@ public class Crawler {
                     //если в текущей паре глубина меньше максимально заданной и в проверенных парах её нет, то добавляем её в проверенные
                     if (pair.GetDepth() < depth && !queue.GetChecked().contains(pair)) queue.AddChecked(pair);
                     PrintResults();
-                //}
             }
             catch (Exception ex)
             {
                 System.out.println("RuntimeException");
             }
         }
-    }
+}
